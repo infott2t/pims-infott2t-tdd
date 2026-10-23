@@ -1,8 +1,12 @@
-
 package program.aprogam;
+ 
+import job.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
-public class AProgram {
-     
+ 
+public class Aprogram {
+    
     static LocalDate today;  // 오늘 날짜
     //getTimeNow()  현재시간은 getNowTime()로 가져오면 됨.
 
@@ -37,7 +41,7 @@ public class AProgram {
         // 상담사 : 걸려온 폰 번호의 체크
         job1.setUserPhoneNumber("user-phone-1234");
 
-        
+
         // 사용자 : 문의를 시작
         user.call("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
         
