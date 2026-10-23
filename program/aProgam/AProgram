@@ -1,15 +1,27 @@
 
+package program.aprogam;
+
 public class AProgram {
      
+    static LocalDate today;
 
     public static void main(String[] args) {
         //System.out.println("Hello World");
 
+        today = getToday();
+
+
         Users user = new Users("John Doe", "사용자");
         Users user2 = new Users("첼시", "상담사");
+      
+
 
         user.call("x23-4567-8901");
         user2.answer("x23-4567-8901", "안녕하세요. 상담사 첼시입니다. 무엇을 도와드릴까요?");
+        Job job1 = new Job(1, "상담", "상담 업무", "INIT");  // Job (int id, String name, String description, String status)
+        job1.setStatus("IN_PROGRESS");
+        job1.setStartDate(today);
+        job1.setStartTime()
         user.call("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
         if(bonilhwakinpilyo){
             user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
@@ -22,7 +34,14 @@ public class AProgram {
             }else{
                 user2.answer("x23-4567-8901", "잘 모르는데, 여기에 문의해보세요. ㅇㅇㅇㅇ-ㅇㅇㅇㅇ");
         }
+    }
         
         user2.endCall("x23-4567-8901");
+    }
+
+     
+    static LocalDate getToday() {
+        // 오늘 날짜를 가져오는 로직
+        return LocalDate.now();
     }
 }

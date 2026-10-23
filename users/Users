@@ -2,9 +2,18 @@ package users;
 
 public class Users {
 
+    private int id;
+    private String name;
+    private String email;
+    private String password;
+    private Role role;
+
+
     Users(String email, String role) {
         this.email = email;
         this.role = new Role(Role.Name.valueOf(role));
+        this.id = findIdByEmail(email);
+        //... 
     }
 
     Users(int id, String name, String email,String role) {

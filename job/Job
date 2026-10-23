@@ -1,6 +1,17 @@
 package job;
 
 public class Job {
+    //new Job(1, "상담", "상담 업무");
+    Job (int id, String name, String description, String status) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        if(status == "INIT") {this.status = new Status(Status.Name.valueOf("INIT"));}
+        this.startDate = null;
+        this.endDate = null;
+        this.userIds = new int[0];
+    }
+
     Job (int id, String name, String description, String status, String startDate, String endDate, int[] userIds) {
         this.id = id;
         this.name = name;
