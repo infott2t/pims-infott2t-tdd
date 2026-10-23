@@ -8,7 +8,9 @@ public class Users {
     private String password;
     private Role role;
 
-
+    Users() {  
+    }
+    
     Users(String email, String role) {
         this.email = email;
         this.role = new Role(Role.Name.valueOf(role));
