@@ -3,9 +3,11 @@ package program.aprogam;
 
 public class AProgram {
      
-    static LocalDate today;
-    static boolean bonilhwakinpilyo;
-    static boolean answerganneunghamyeon;
+    static LocalDate today;  // 오늘 날짜
+    //getTimeNow()  현재시간은 getNowTime()로 가져오면 됨.
+    
+    static boolean bonilhwakinpilyoTF; // 본인확인 필요 여부
+    static boolean answerganneunghamyeonTF; // 대답 가능 여부
 
     public static void main(String[] args) {
         
@@ -41,7 +43,7 @@ public class AProgram {
         // 상담사의 판단
 
         //본인 확인이 필요하다면...
-        if(bonilhwakinpilyo){
+        if(bonilhwakinpilyoTF){
             user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
             //폰 번호가 있다면...
             if(user.getName("Jone Doe").equals(user_all.getName("John Doe"))){
@@ -59,7 +61,7 @@ public class AProgram {
 
 
         // 본인확인 없이 대답이 가능하다면...
-        if(answerganneunghamyeon){
+        if(answerganneunghamyeonTF){
             user2.answer("x23-4567-8901", "아, 그렇군요. 그것은 이렇게 됨니다.");
         }else{
             user2.answer("x23-4567-8901", "잘 모르는데, 여기에 문의해보세요. ㅇㅇㅇㅇ-ㅇㅇㅇㅇ");
