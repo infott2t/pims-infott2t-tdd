@@ -5,7 +5,7 @@ public class AProgram {
      
     static LocalDate today;  // 오늘 날짜
     //getTimeNow()  현재시간은 getNowTime()로 가져오면 됨.
-    
+
     static boolean bonilhwakinpilyoTF; // 본인확인 필요 여부
     static boolean answerganneunghamyeonTF; // 대답 가능 여부
 
@@ -32,12 +32,16 @@ public class AProgram {
         job1.setStatus("IN_PROGRESS");
         job1.setStartDate(today);
         job1.setStartTime(getNowTime());
+
+
+        // 상담사 : 걸려온 폰 번호의 체크
+        job1.setUserPhoneNumber("user-phone-1234");
+
         
         // 사용자 : 문의를 시작
         user.call("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
         
-        // 상담사 : 걸려온 폰 번호의 체크
-        job1.setUserPhoneNumber("user-phone-1234");
+        
 
         // 상담사가 답변을 해줌 or not.
         // 상담사의 판단
