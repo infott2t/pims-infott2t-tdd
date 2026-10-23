@@ -1,5 +1,6 @@
+package users;
 
-class Users {
+public class Users {
 
      
     Users(int id, String name, String email, String password, String role) {

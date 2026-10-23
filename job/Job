@@ -1,4 +1,6 @@
-class Job {
+package job;
+
+public class Job {
     Job (int id, String name, String description, String status, String startDate, String endDate, int[] userIds) {
         this.id = id;
         this.name = name;

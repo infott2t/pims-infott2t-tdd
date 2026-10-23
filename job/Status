@@ -1,3 +1,5 @@
+package job;
+import java.util.Objects;
 
 class Status {
 
@@ -6,7 +8,7 @@ class Status {
         IN_PROGRESS,
         COMPLETED
     }
-    
+
     private final Name name;
 
     Status(Name name) {
