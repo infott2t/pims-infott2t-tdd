@@ -1,0 +1,11 @@
+class Job {
+    Job (int id, String name, String description, String status, String startDate, String endDate, int[] userIds) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = new Status(Status.Name.valueOf(status));
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.userIds = userIds;
+    }
+}
