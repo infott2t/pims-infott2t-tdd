@@ -21,4 +21,8 @@ public class Job {
         this.endDate = endDate;
         this.userIds = userIds;
     }
+
+    setUserPhoneNumber(String phoneNumber) {
+        this.userPhoneNumber = phoneNumber;
+    }
 }

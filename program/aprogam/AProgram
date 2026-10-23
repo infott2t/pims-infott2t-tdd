@@ -22,7 +22,7 @@ public class AProgram {
 
         // 상담사와 사용자가 통화를 시작
         user.call("x23-4567-8901");
-        user2.answer("x23-4567-8901", "안녕하세요. 상담사 첼시입니다. 무엇을 도와드릴까요?");
+        user2.answer("x23-4567-8901", "안녕하세요. ㅇㅇㅇ입니다. 저는 상담사 첼시입니다. 무엇을 도와드릴까요?");
        
 
         //전화가 걸리면 일에 기록...
@@ -31,9 +31,13 @@ public class AProgram {
         job1.setStartDate(today);
         job1.setStartTime(getNowTime());
         
-        // 사용자가 문의를 시작
+        // 사용자 : 문의를 시작
         user.call("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
         
+        // 상담사 : 걸려온 폰 번호의 체크
+        job1.setUserPhoneNumber("user-phone-1234");
+
+        // 상담사가 답변을 해줌 or not.
         // 상담사의 판단
 
         //본인 확인이 필요하다면...
@@ -53,7 +57,7 @@ public class AProgram {
 
             }
 
-            
+
         // 본인확인 없이 대답이 가능하다면...
         if(answerganneunghamyeon){
             user2.answer("x23-4567-8901", "아, 그렇군요. 그것은 이렇게 됨니다.");
