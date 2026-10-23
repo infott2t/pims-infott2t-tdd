@@ -2,6 +2,17 @@ package users;
 
 public class Users {
 
+    Users(String email, String role) {
+        this.email = email;
+        this.role = new Role(Role.Name.valueOf(role));
+    }
+
+    Users(int id, String name, String email,String role) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.role = new Role(Role.Name.valueOf(role));
+    }
      
     Users(int id, String name, String email, String password, String role) {
         this.id = id;
