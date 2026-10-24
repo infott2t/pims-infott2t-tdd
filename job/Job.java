@@ -16,6 +16,7 @@ public class Job {
     private int[] userIds;
 
     private String userName; // 사용자 이름을 저장하는 필드 추가
+    private String userAddress; // [antigravity(google.com)활용] 사용자 주소를 저장하는 필드 추가
 
     //new Job(1, "상담", "상담 업무");
     public Job (int id, String name, String description, String status) {
@@ -42,19 +43,30 @@ public class Job {
         this.userPhoneNumber = phoneNumber;
     }
 
+    // [antigravity(google.com)활용] 걸려온 전화번호 조회 Getter 추가
+    public String getUserPhoneNumber() {
+        return this.userPhoneNumber;
+    }
+
     public void setStatus(String string) {
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'setStatus'");
+        // [antigravity(google.com)활용] 상태 변경 구현
+        this.status = new Status(Status.Name.valueOf(string));
     }
 
     public void setStartDate(LocalDate today) {
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'setStartDate'");
+        // [antigravity(google.com)활용] 시작 일자 설정 구현
+        this.startDate = today;
     }
 
     public void setStartTime(LocalTime nowTime) {
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'setStartTime'");
+        // [antigravity(google.com)활용] 시작 시간 설정 구현
+        this.startTime = nowTime;
     }
 
     public void setUserName(String string) {
@@ -67,11 +79,13 @@ public class Job {
 
     public void setUserAddress(String string) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setUserAddress'");
+        // [antigravity(google.com)활용] 사용자 주소 설정 구현
+        this.userAddress = string;
     }
 
     public Object getUserAddress(String string) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUserAddress'");
+        // [antigravity(google.com)활용] 사용자 주소 반환 구현
+        return this.userAddress;
     }
 }
