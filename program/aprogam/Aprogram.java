@@ -25,7 +25,7 @@ public class Aprogram {
         Users user2 = new Users("첼시", "상담사");     // user2, 상담사
       
         // 검색을 위한 모든 사용자 정보를 가져오는 로직
-        Users user_all = new Users();
+        Users[] user_all = new Users[]{};
 
         // 상담사와 사용자가 통화를 시작
         user.call("x23-4567-8901");
@@ -53,19 +53,22 @@ public class Aprogram {
 
         //본인 확인이 필요하다면...
         if(bonilhwakinpilyoTF){
-            user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
+           
             //폰 번호가 있다면...
-            if(user.getName("Jone Doe").equals(user_all.getName("John Doe"))){
-
+            if(user.getPhoneNumber() != null){
+                for(Users user_all1 : user_all){
+                    if(user.getPhoneNumber().equals(user_all1.getPhoneNumber())){
+                       //폰 번호가 있는 경우.
+                        user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
+                    }else {
+                      //폰 번호가 없는 경우.
+                      user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
+                }
             }
+             
             //폰 번호가 없다면...
-            if(user.getPhoneNumber() == null){
-                    //폰 번호도 알려주실래요?
-                    if(user.getPhoneNumber() == user_all.getPhoneNumber("x01-2345-6789")){
-                    
-            }
             }else{
-
+                    user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
             }
 
 
