@@ -1,6 +1,7 @@
 package program.aprogam;
  
-import job.*;
+import job.Job;
+import users.Users;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -24,7 +25,7 @@ public class Aprogram {
         Users user2 = new Users("첼시", "상담사");     // user2, 상담사
       
         // 검색을 위한 모든 사용자 정보를 가져오는 로직
-        Users user_all = new User();
+        Users user_all = new Users();
 
         // 상담사와 사용자가 통화를 시작
         user.call("x23-4567-8901");
@@ -60,7 +61,7 @@ public class Aprogram {
             //폰 번호가 없다면...
             if(user.getPhoneNumber() == null){
                     //폰 번호도 알려주실래요?
-                    if(user.getPhoneNumber("x01-2345-6789") == user_all.getPhoneNumber("x01-2345-6789")){
+                    if(user.getPhoneNumber() == user_all.getPhoneNumber("x01-2345-6789")){
                     
             }
             }else{
