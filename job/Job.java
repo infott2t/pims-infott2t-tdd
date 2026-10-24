@@ -64,4 +64,14 @@ public class Job {
     public Object getUserName(String string) {
         return this.userName; // 사용자 이름을 반환
     }
+
+    public void setUserAddress(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setUserAddress'");
+    }
+
+    public Object getUserAddress(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getUserAddress'");
+    }
 }

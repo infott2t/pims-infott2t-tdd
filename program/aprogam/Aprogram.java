@@ -76,6 +76,19 @@ public class Aprogram {
                         if(job1.getUserName("Jone Doe") != null){
                             if(userPhone.getName().equals(job1.getUserName("Jone Doe"))){
                                 user2.answer("x23-4567-8901", "이번에는 주소로 본인확인할게요. 주소를 알려주세요.");
+                                user.call("x23-4567-8901", "서울시 강남구 역삼동 xxx-xx");
+                                //상담사 :사용자 주소를 체크
+                                job1.setUserAddress("서울시 강남구 역삼동 xxx-xx");
+                                Log log3 = new Log(user2, job1, "서울시 강남구 역삼동 xxx-xx", "상담사 :사용자 주소를 체크", today, getNowTime());
+                                if(job1.getUserAddress("서울시 강남구 역삼동 xxx-xx") != null){
+                                    if(userPhone.getAddress().equals(job1.getUserAddress("서울시 강남구 역삼동 xxx-xx"))){
+                                        user2.answer("x23-4567-8901", "본인확인이 완료되었습니다. 무엇을 도와드릴까요?");
+                                        // 상담사: 본인확인 완료. 상담시작... ... .
+
+                                    }else{
+                                        user2.answer("x23-4567-8901", "본인확인이 되지 않았습니다.");
+                                    }
+                                }
                             }
                         }
                     }else {

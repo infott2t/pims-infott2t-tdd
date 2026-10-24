@@ -81,4 +81,9 @@ public class Users {
     public String getName() {
         return name;
     }
+
+    public Object getAddress() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAddress'");
+    }
 }
