@@ -1,4 +1,4 @@
-# pims-tdd
+# pims-infott2t-tdd
 
 > 🚧 **현재 개발 진행 중 (Work in Progress)**  
 > 이 프로젝트는 현재 활발히 개발 및 학습이 진행 중인 프로젝트입니다.
