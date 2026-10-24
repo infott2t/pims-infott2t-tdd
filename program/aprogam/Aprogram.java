@@ -27,6 +27,8 @@ public class Aprogram {
       
         // 검색을 위한 모든 사용자 정보를 가져오는 로직
         Users[] user_all = new Users[]{};
+        // 폰으로 검색된 사용자 정보
+        Users userPhone = null;
 
         // 상담사와 사용자가 통화를 시작
         user.call("x23-4567-8901");
@@ -61,11 +63,21 @@ public class Aprogram {
                     if(user.getPhoneNumber().equals(user_all1.getPhoneNumber())){
                        //폰 번호가 있는 경우.
                         phoneTF = true;
+                        userPhone = user_all1;  // 폰 번호로 검색된 사용자 정보
+                        
                     }      
                 }
                     if(phoneTF){
                         user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
-                
+                        user.call("x23-4567-8901", "Jone Doe입니다.");
+                        // 상담사 :사용자 이름을 체크
+                        job1.setUserName("Jone Doe");
+                        Log log2 = new Log(user2, job1, "Jone Doe", "상담사 :사용자 이름을 체크", today, getNowTime());
+                        if(job1.getUserName("Jone Doe") != null){
+                            if(userPhone.getName().equals(job1.getUserName("Jone Doe"))){
+                                user2.answer("x23-4567-8901", "이번에는 주소로 본인확인할게요. 주소를 알려주세요.");
+                            }
+                        }
                     }else {
                         user2.answer("x23-4567-8901", "본인확인이 필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
                     }

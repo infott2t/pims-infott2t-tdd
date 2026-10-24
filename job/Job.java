@@ -15,6 +15,8 @@ public class Job {
     private String userPhoneNumber;
     private int[] userIds;
 
+    private String userName; // 사용자 이름을 저장하는 필드 추가
+
     //new Job(1, "상담", "상담 업무");
     public Job (int id, String name, String description, String status) {
         this.id = id;
@@ -53,5 +55,13 @@ public class Job {
     public void setStartTime(LocalTime nowTime) {
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'setStartTime'");
+    }
+
+    public void setUserName(String string) {
+        this.userName = string; // 사용자 이름을 설정하는 메서드
+    }
+
+    public Object getUserName(String string) {
+        return this.userName; // 사용자 이름을 반환
     }
 }

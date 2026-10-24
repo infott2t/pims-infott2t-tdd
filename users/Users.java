@@ -77,4 +77,8 @@ public class Users {
         //throw new UnsupportedOperationException("Unimplemented method 'endCall'");
         
     }
+
+    public String getName() {
+        return name;
+    }
 }
