@@ -13,7 +13,7 @@ public class Aprogram {
 
     static boolean bonilhwakinpilyoTF; // 본인확인 필요 여부
     static boolean answerganneunghamyeonTF; // 대답 가능 여부
-
+    static boolean phoneTF = false; // 폰 번호 체크 여부
     public static void main(String[] args) {
         
         // 오늘 날짜를 가져오는 로직
@@ -59,13 +59,15 @@ public class Aprogram {
                 for(Users user_all1 : user_all){
                     if(user.getPhoneNumber().equals(user_all1.getPhoneNumber())){
                        //폰 번호가 있는 경우.
-                        user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
-                    }else {
-                      //폰 번호가 없는 경우.
-                      user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
+                        phoneTF = true;
+                    }      
                 }
-            }
-             
+             if(phoneTF){
+                 user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
+                
+             }else {
+                user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
+             }
             //폰 번호가 없다면...
             }else{
                     user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
