@@ -1,6 +1,7 @@
 package program.aprogam;
  
 import job.Job;
+import log.Log;
 import users.Users;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -41,7 +42,7 @@ public class Aprogram {
 
         // 상담사 : 걸려온 폰 번호의 체크
         job1.setUserPhoneNumber("user-phone-1234");
-
+        Log log1 = new Log(user2, job1,"user-phone-1234", "상담사 : 걸려온 폰 번호의 체크", today, getNowTime());
 
         // 사용자 : 문의를 시작
         user.call("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
@@ -62,12 +63,13 @@ public class Aprogram {
                         phoneTF = true;
                     }      
                 }
-             if(phoneTF){
-                 user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
+                    if(phoneTF){
+                        user2.answer("x23-4567-8901", "아, 그렇군요. 잠시만 기다려주세요. 본인확인필요합니다. 이름을 알려주세요.");
                 
-             }else {
-                user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
-             }
+                    }else {
+                        user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
+                    }
+           
             //폰 번호가 없다면...
             }else{
                     user2.answer("x23-4567-8901", "본인확인필요합니다. 죄송합니다만 등록된 본인 폰으로 걸어주세요.");
