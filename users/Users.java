@@ -116,4 +116,17 @@ public class Users {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    public Users checkPhoneNumber(String string) {
+        Users[] user_all = new Users[]{ this }; // 현재 사용자 객체를 배열로 생성
+        for (Users user : user_all) {
+            if (user.getPhoneNumber() != null && user.getPhoneNumber().equals(string)) {
+                return user; // 전화번호가 일치하는 사용자 반환
+            }
+        }
+       
+        System.out.println("[" + this.name + " (" + string + ")] 해당 사용자가 없습니다.");
+        return null; // 전화번호가 일치하지 않음
+       
+    }
 }
