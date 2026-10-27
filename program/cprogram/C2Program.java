@@ -100,7 +100,9 @@ public class C2Program {
             // Job (int id, String name, String description, String status)
             job1.setDescription("상담종료_방문예약완료");
             job1.setStatus("COMPLETED");
-          
+            job1.setEndDate();
+            job1.setEndTime();
+            
         
         }else{
         // 2. 본인확인이 필요하지 않은 경우 - 궁금한 것에 대해 답변을 해주거나, 더 잘 알 수 있는 전화번호를 안내한다.
@@ -109,15 +111,21 @@ public class C2Program {
                  agent.answer("x23-4567-8901", "이쪽으로 전화부탁드림니다. 번호가.. 0123-anthoer-number입니다.");
                  //job의 상태가 COMPLETED로 바뀐다.
                  job1.setStatus("COMPLETED");
+                 job1.setEndDate();
+                 job1.setEndTime();
                 }else{
                 if(needAnotherAgent){
                      agent.answer("x23-4567-8901", "그럼, 해당 상담사를 바꿔드릴게요. 기다려주세요.");
                      //job의 상태가 PENDING으로 바뀐다.
                      job1.setStatus("PENDING");
+                     job1.setEndDate();
+                     job1.setEndTime();
                 }else {
                      agent.answer("x23-4567-8901", "해당 질문의 대해서는 ... 게 하시면 됨니다.");
                      //job의 상태가 COMPLETED로 바뀐다.
                     job1.setStatus("COMPLETED");
+                    job1.setEndDate();
+                    job1.setEndTime();
                 }
             } 
            

@@ -12,9 +12,10 @@ public class Job {
     private String name;
     private String description;
     private Status status;
-    private LocalDateTime startDate;
-    private LocalDate endDate;
+    private LocalDate startDate;
     private LocalTime startTime;
+    private LocalDate endDate;
+    private LocalTime endTime;
     private String userPhoneNumber;
     private int[] userIds;
     private Log[] logs;
@@ -28,27 +29,26 @@ public class Job {
         this.name = name;
         this.description = description;
         if(status == "INIT") {this.status = new Status(Status.Name.valueOf("INIT"));}
-        this.startDate = nowDateTime();
+        this.startDate = nowDate();
+        this.startTime = nowTime();
         this.endDate = null;
-        this.userIds = new int[0];
+        this.endDate = null;
+        
     }
 
  
 
-    private LocalDateTime nowDateTime() {
-        //지금 날짜와 시간을 리턴
-        return LocalDateTime.now();
+    private LocalDate nowDate() {
+        //지금 날짜를 리턴
+        return LocalDate.now();
     }
 
-    Job (int id, String name, String description, String status, LocalDateTime startDate, LocalDate endDate, int[] userIds) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.status = new Status(Status.Name.valueOf(status));
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.userIds = userIds;
+    private LocalTime nowTime() {
+        //지금 날짜를 리턴
+        return LocalTime.now();
     }
+
+ 
 
     public void setUserPhoneNumber(String phoneNumber) {
         this.userPhoneNumber = phoneNumber;
@@ -64,9 +64,7 @@ public class Job {
         this.status = new Status(Status.Name.valueOf(string));
     }
 
-    public void setStartDate(LocalDate today) {
-        this.startDate = today.atStartOfDay();
-    }
+    
 
     public void setStartTime(LocalTime nowTime) {
         
@@ -89,6 +87,14 @@ public class Job {
     public Object getUserAddress(String string) {
         
         return this.userAddress;
+    }
+
+    public void setEndDate(){
+        this.endDate = LocalDate.now(); 
+    }
+
+    public void setEndTime() {
+        this.endTime = LocalTime.now();
     }
 
 
