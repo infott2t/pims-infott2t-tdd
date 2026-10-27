@@ -10,7 +10,7 @@ public class C2Program {
     static boolean needBoninHwackIn = true; //본인 확인 필요 여부 (true값 임시설정.)
     static boolean needAnotherNumber = true; // 다른 번호를 알려주는 경우 (true값 임시설정.)
     static boolean needAnotherAgent = true;  // 다른 상담사를 바꿔달라는 경우 (true값 임시설정.)
-    static Log log1 = null;  //업무중 로그기록들.
+    static Log log1,log2,log3,log4 = null;  //업무중 로그기록들.
 
     static Job job1 = null;  //업무기록. 전화상담에대해 1번씩 기록. 상태, INIT, PENDING, IN_PROGRESS, COMPLETED
     public static void main(String[] args) {
@@ -58,6 +58,8 @@ public class C2Program {
         //상담사가 전화를 받는다.
         agent.answer("x23-4567-8901", null);
 
+        //job. 업무상태가 IN_PROGRESS로 바뀐다.
+        job1.setStatus("IN_PROGRESS");
 
         //상담사는 자신의 이름을 밝히고, 사용자(회원)에게 어떤 일로 상담을 하는지 물어본다.
         //안녕하세요. ㅇㅇㅇ 상담사 첼시입니다. 무엇을 도와드릴까요?
@@ -74,26 +76,54 @@ public class C2Program {
         // 본인 생년월일이 어떻게 되시나요?
         // 본인 주소가 어떻게 되시나요?
             agent.answer("x23-4567-8901", "본인 확인이 필요한데요. 몇가지 여쭤보겠습니다.");
+            user.answer("x23-4567-8901", "네.");
+            
+
+            // public Log(Users agent, Job job1, String phoneData, String message, Users[] usersIds)
             agent.answer("x23-4567-8901", "성함이 어떻게 되시나요?");
+            user.answer("x23-4567-8901", "ㅇㅇㅇ입니다.");
+            log2 = new Log(agent, job1, (String) chkUser.getPhoneNumber(), "본인확인_이름", new Users[]{agent,chkUser});
+
+
             agent.answer("x23-4567-8901", "본인 생년월일이 어떻게 되시나요?");
+            user.answer("x23-4567-8901", "99011x입니다.");
+            log3 = new Log(agent, job1, (String) chkUser.getPhoneNumber(), "본인확인_생년월일", new Users[]{agent,chkUser});
+            
+
             agent.answer("x23-4567-8901", "본인 주소가 어떻게 되시나요?");
+            user.answer("x23-4567-8901", "부산시 해운대구 oo동 무슨아파트 몇동 몇호 입니다.");
+            log4 = new Log(agent, job1, (String) chkUser.getPhoneNumber(), "본인확인_주소", new Users[]{agent,chkUser});    
+        
+            // 상담사가 상담을 마치고, 상담 종료를 한다.
+            // job에 해당 상담업무에 대해 기록을 한다. ㅇ월 ㅇ일 몇시에 예약 완료, 단순상담등.
+            // 이번 상담 일에 대해 기록을 남긴다.  
+            // Job (int id, String name, String description, String status)
+            job1.setDescription("상담종료_방문예약완료");
+            job1.setStatus("COMPLETED");
+          
+        
         }else{
         // 2. 본인확인이 필요하지 않은 경우 - 궁금한 것에 대해 답변을 해주거나, 더 잘 알 수 있는 전화번호를 안내한다.
         //                                또, 다른 상담사에게 연결시켜준다.
             if(needAnotherNumber){
                  agent.answer("x23-4567-8901", "이쪽으로 전화부탁드림니다. 번호가.. 0123-anthoer-number입니다.");
-            }else{
+                 //job의 상태가 COMPLETED로 바뀐다.
+                 job1.setStatus("COMPLETED");
+                }else{
                 if(needAnotherAgent){
                      agent.answer("x23-4567-8901", "그럼, 해당 상담사를 바꿔드릴게요. 기다려주세요.");
+                     //job의 상태가 PENDING으로 바뀐다.
+                     job1.setStatus("PENDING");
                 }else {
                      agent.answer("x23-4567-8901", "해당 질문의 대해서는 ... 게 하시면 됨니다.");
+                     //job의 상태가 COMPLETED로 바뀐다.
+                    job1.setStatus("COMPLETED");
                 }
             } 
            
              
         }
-        // 상담사가 상담을 마치고, 상담 종료를 한다.
-        // 이번 상담 일에 대해 기록을 남긴다.    
+        
 
         
     }

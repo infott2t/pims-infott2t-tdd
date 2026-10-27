@@ -90,4 +90,11 @@ public class Job {
         
         return this.userAddress;
     }
+
+
+
+    public void setDescription(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setDescription'");
+    }
 }
