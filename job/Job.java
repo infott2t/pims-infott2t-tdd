@@ -44,7 +44,7 @@ public class Job {
     }
 
     private LocalTime nowTime() {
-        //지금 날짜를 리턴
+        //지금 시간을 리턴
         return LocalTime.now();
     }
 
