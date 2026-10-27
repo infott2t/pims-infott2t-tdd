@@ -7,6 +7,9 @@ import users.Users;
 public class C2Program {
 
     static Users chkUser = null; //상담사가 전화번호를 확인할 때 쓰는 함수. 회원정보에 전화번호가 있는지 없는지 체크. (예약상담 또는 단순상담 여부)
+    static boolean needBoninHwackIn = true; //본인 확인 필요 여부 (true값 임시설정.)
+    static boolean needAnotherNumber = true; // 다른 번호를 알려주는 경우 (true값 임시설정.)
+    static boolean needAnotherAgent = true;  // 다른 상담사를 바꿔달라는 경우 (true값 임시설정.)
     static Log log1 = null;  //업무중 로그기록들.
 
     static Job job1 = null;  //업무기록. 전화상담에대해 1번씩 기록. 상태, INIT, PENDING, IN_PROGRESS, COMPLETED
@@ -58,20 +61,40 @@ public class C2Program {
 
         //상담사는 자신의 이름을 밝히고, 사용자(회원)에게 어떤 일로 상담을 하는지 물어본다.
         //안녕하세요. ㅇㅇㅇ 상담사 첼시입니다. 무엇을 도와드릴까요?
-
+        agent.answer("x23-4567-8901", "안녕하세요. ㅇㅇㅇ 상담사 첼시입니다. 무엇을 도와드릴까요?");
         //사용자는 상담사에게 자신의 문의사항을 말한다.
         //안녕하세요. ㅇㅇ때문에 그런데요.
-
+        user.answer("x23-4567-8901", "안녕하세요. ㅇㅇ때문에 그런데요.");
         //상담사는 사용자의 문의사항을 듣고, 상담 진행에 본인확인이 필요한지 판단하고, 상담을 진행한다.
+        
+        if(needBoninHwackIn){
         // 1. 본인확인이 필요한 경우 
         // 본인 확인이 필요한데요. 몇가지 여쭤보겠습니다. 
         // 성함이 어떻게 되시나요?
         // 본인 생년월일이 어떻게 되시나요?
         // 본인 주소가 어떻게 되시나요?
-
+            agent.answer("x23-4567-8901", "본인 확인이 필요한데요. 몇가지 여쭤보겠습니다.");
+            agent.answer("x23-4567-8901", "성함이 어떻게 되시나요?");
+            agent.answer("x23-4567-8901", "본인 생년월일이 어떻게 되시나요?");
+            agent.answer("x23-4567-8901", "본인 주소가 어떻게 되시나요?");
+        }else{
         // 2. 본인확인이 필요하지 않은 경우 - 궁금한 것에 대해 답변을 해주거나, 더 잘 알 수 있는 전화번호를 안내한다.
-
+        //                                또, 다른 상담사에게 연결시켜준다.
+            if(needAnotherNumber){
+                 agent.answer("x23-4567-8901", "이쪽으로 전화부탁드림니다. 번호가.. 0123-anthoer-number입니다.");
+            }else{
+                if(needAnotherAgent){
+                     agent.answer("x23-4567-8901", "그럼, 해당 상담사를 바꿔드릴게요. 기다려주세요.");
+                }else {
+                     agent.answer("x23-4567-8901", "해당 질문의 대해서는 ... 게 하시면 됨니다.");
+                }
+            } 
+           
+             
+        }
         // 상담사가 상담을 마치고, 상담 종료를 한다.
-        // 이번 상담 일에 대해 기록을 남긴다.
+        // 이번 상담 일에 대해 기록을 남긴다.    
+
+        
     }
 }

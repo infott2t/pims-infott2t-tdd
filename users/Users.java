@@ -59,18 +59,18 @@ public class Users {
         System.out.println("[" + this.name + " -> " + string + "] 전화 발신");
     }
 
-    public void answer(String string, String string2) {
+    public void answer(String callNumber, String string2) {
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'answer'");
         // [antigravity(google.com)활용] 상담사 응답 출력
-        System.out.println("[상담사 " + this.name + " (" + string + ")] " + string2);
+        System.out.println("[상담사 " + this.name +"]"+ " (" + callNumber + ")] " + string2);
     }
 
-    public void call(String string, String string2) {
+    public void call(String callNumber, String string2) {
         // TODO Auto-generated method stub
        // throw new UnsupportedOperationException("Unimplemented method 'call'");
         // [antigravity(google.com)활용] 사용자 발화 출력
-        System.out.println("[사용자 " + this.name + " (" + string + ")] " + string2);
+        System.out.println("[사용자 " + this.name +"]"+ " (" + callNumber + ")] " + string2);
     }
 
     public Object getName(String string) {

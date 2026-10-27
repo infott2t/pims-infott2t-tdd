@@ -33,16 +33,7 @@ public class Job {
         this.userIds = new int[0];
     }
 
-    public Job (int id, String name, String description, String status, Log log) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        if(status == "INIT") {this.status = new Status(Status.Name.valueOf("INIT"));}
-        this.startDate = nowDateTime();
-        this.endDate = null;
-        this.userIds = new int[0];
-         
-    }
+ 
 
     private LocalDateTime nowDateTime() {
         //지금 날짜와 시간을 리턴
