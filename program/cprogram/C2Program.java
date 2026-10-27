@@ -53,6 +53,17 @@ public class C2Program {
             log1 = new Log(agent, job1, chkUser.getPhoneNumber()); 
         }else {
             //회원 정보가 없으므로, 단순 상담만 가능.
+            job1.setDescription("단순상담");
+
+            //job. 업무상태가 IN_PROGRESS로 바뀐다.
+            job1.setStatus("IN_PROGRESS");
+            
+
+            //사용자와 상담을 해주고, 상담을 종료한다.
+
+             job1.setStatus("COMPLETED");
+             job1.setEndDate();
+             job1.setEndTime();
         }
 
         //상담사가 전화를 받는다.
