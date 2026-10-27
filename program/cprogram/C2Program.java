@@ -118,8 +118,7 @@ public class C2Program {
                      agent.answer("x23-4567-8901", "그럼, 해당 상담사를 바꿔드릴게요. 기다려주세요.");
                      //job의 상태가 PENDING으로 바뀐다.
                      job1.setStatus("PENDING");
-                     job1.setEndDate();
-                     job1.setEndTime();
+                     
                 }else {
                      agent.answer("x23-4567-8901", "해당 질문의 대해서는 ... 게 하시면 됨니다.");
                      //job의 상태가 COMPLETED로 바뀐다.
