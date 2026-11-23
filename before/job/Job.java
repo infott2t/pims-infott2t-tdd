@@ -1,10 +1,10 @@
-package job;
+package before.job;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import log.Log;
+import before.log.Log;
 
 public class Job {
 

@@ -1,0 +1,17 @@
+package before.users;
+import java.util.Objects;
+
+class Role {
+
+    enum Name {
+        상담사,
+        사용자,
+        일반
+    }
+
+    private final Name name;
+
+    Role(Name name) {
+        this.name = Objects.requireNonNull(name, "name");
+    }
+}

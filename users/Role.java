@@ -14,4 +14,9 @@ class Role {
     Role(Name name) {
         this.name = Objects.requireNonNull(name, "name");
     }
+
+    public Name getName() {
+        // TODO Auto-generated method stub
+        return this.name;
+    }
 }

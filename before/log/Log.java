@@ -1,4 +1,4 @@
-package log;
+package before.log;
 
  
 import java.time.LocalDate;
@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-import job.Job;
-import users.Users;
+import before.job.Job;
+import before.users.Users;
 
 public class Log {
     
@@ -54,7 +54,7 @@ public class Log {
         this.date = LocalDateTime.now();
     }
 
-    public Log(users.Users agent, job.Job job1, Object phoneNumber) {
+    public Log(before.users.Users agent, before.job.Job job1, Object phoneNumber) {
         //TODO Auto-generated constructor stub
     }
 

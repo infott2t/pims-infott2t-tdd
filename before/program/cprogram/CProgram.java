@@ -1,6 +1,6 @@
-package program.cprogram;
+package before.program.cprogram;
 
-import users.Users;
+import before.users.Users;
 
 public class CProgram {
 

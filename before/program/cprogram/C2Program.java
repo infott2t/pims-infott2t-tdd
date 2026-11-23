@@ -1,8 +1,8 @@
-package program.cprogram;
+package before.program.cprogram;
 
-import job.Job;
-import log.Log;
-import users.Users; 
+import before.job.Job;
+import before.log.Log;
+import before.users.Users; 
 
 public class C2Program {
 
