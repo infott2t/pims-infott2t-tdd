@@ -2,6 +2,7 @@ package swing.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -13,9 +14,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -30,6 +34,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import swing.entity.User;
+import swing.service.AuthService;
 import swing.service.UserService;
 
 /**
@@ -231,7 +236,35 @@ public class ConsultationPanel extends JPanel {
         scenarioTabs.addTab("시나리오 2: 타 번호 안내", wrapScenarioTab(buildScenario2Panel()));
 
         // --- 시나리오 3: 다른 상담사 연결 ---
-        s3AgentCombo = new JComboBox<>();
+        s3AgentCombo = new JComboBox<>(new DefaultComboBoxModel<User>() {
+            @Override
+            public void setSelectedItem(Object anObject) {
+                if (anObject instanceof User && AuthService.STATUS_ON_CALL.equals(((User) anObject).getStatus())) {
+                    return; // '업무중: 전화' 상태는 보이지만 선택 불가(disable)
+                }
+                super.setSelectedItem(anObject);
+            }
+        });
+        s3AgentCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof User) {
+                    User agent = (User) value;
+                    if (AuthService.STATUS_ON_CALL.equals(agent.getStatus())) {
+                        setText(agent.getName() + " (업무중: 전화 - 선택 불가)");
+                        setEnabled(false);
+                        setForeground(new Color(148, 163, 184));
+                        setBackground(new Color(241, 245, 249));
+                    } else {
+                        setText(agent.toString());
+                        setEnabled(true);
+                    }
+                }
+                return this;
+            }
+        });
         scenarioTabs.addTab("시나리오 3: 상담사 연결", wrapScenarioTab(buildScenario3Panel()));
 
         // --- 시나리오 4: 단순 질문 답변 / 비회원 단순상담 ---
@@ -412,7 +445,7 @@ public class ConsultationPanel extends JPanel {
 
         root.add(createScenarioHeader(
                 "3. 본인확인 불필요 — 다른 상담사 연결",
-                "대상 상담사가 '업무 중'이면 인계 완료(COMPLETED), '자리 비움'이면 대기 안내 후 PENDING 상태로 전환합니다."
+                "대상 상담사가 '업무 중' 또는 '자리 비움'이면 PENDING 상태로 전환되며, '업무중: 전화' 상태는 선택 불가합니다."
         ), BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridBagLayout());
@@ -652,10 +685,16 @@ public class ConsultationPanel extends JPanel {
     }
 
     public void setOtherAgents(List<User> agents) {
-        s3AgentCombo.removeAllItems();
+        DefaultComboBoxModel<User> model = (DefaultComboBoxModel<User>) s3AgentCombo.getModel();
+        model.removeAllElements();
+        User firstSelectable = null;
         for (User agent : agents) {
-            s3AgentCombo.addItem(agent);
+            model.addElement(agent);
+            if (firstSelectable == null && !AuthService.STATUS_ON_CALL.equals(agent.getStatus())) {
+                firstSelectable = agent;
+            }
         }
+        model.setSelectedItem(firstSelectable);
     }
 
     private void openRegisterCustomerDialog() {

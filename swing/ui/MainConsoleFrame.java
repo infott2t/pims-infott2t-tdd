@@ -57,6 +57,8 @@ public class MainConsoleFrame extends JFrame
     private final AgentWorkLogService agentWorkLogService;
 
     private final JLabel peerAgentsLabel;
+    private JComboBox<String> myStatusCombo;
+    private boolean updatingStatusCombo = false;
     private final IncomingCallPanel callPanel;
     private final ConsultationPanel consultationPanel;
     private final JobHistoryPanel jobHistoryPanel;
@@ -144,17 +146,19 @@ public class MainConsoleFrame extends JFrame
         statusTitle.setForeground(Color.WHITE);
         rightControls.add(statusTitle);
 
-        JComboBox<String> myStatusCombo = new JComboBox<>(new String[]{"업무 중", "자리 비움"});
+        myStatusCombo = new JComboBox<>(new String[]{
+                AuthService.STATUS_WORKING,
+                AuthService.STATUS_AWAY,
+                AuthService.STATUS_ON_CALL
+        });
         myStatusCombo.setSelectedItem(currentAgent.getStatus());
         myStatusCombo.addActionListener(e -> {
+            if (updatingStatusCombo) {
+                return;
+            }
             String newStatus = (String) myStatusCombo.getSelectedItem();
             if (newStatus != null && !newStatus.equals(currentAgent.getStatus())) {
-                authService.updateAgentStatus(currentAgent, newStatus);
-                AgentWorkLog statusRecord = agentWorkLogService.recordStatusChange(currentAgent, newStatus);
-                callPanel.appendLine("[상담사 " + currentAgent.getName() + "] 상태 변경 -> " + newStatus);
-                callPanel.appendLine(statusRecord.toString());
-                agentWorkLogPanel.refreshWorkLogs();
-                refreshAgentsInfo();
+                changeMyStatus(newStatus, true);
             }
         });
         rightControls.add(myStatusCombo);
@@ -216,6 +220,34 @@ public class MainConsoleFrame extends JFrame
         setContentPane(root);
     }
 
+    private void changeMyStatus(String newStatus, boolean recordWorkLog) {
+        if (newStatus == null || newStatus.equals(currentAgent.getStatus())) {
+            return;
+        }
+        authService.updateAgentStatus(currentAgent, newStatus);
+        if (myStatusCombo != null) {
+            updatingStatusCombo = true;
+            try {
+                myStatusCombo.setSelectedItem(newStatus);
+            } finally {
+                updatingStatusCombo = false;
+            }
+        }
+        callPanel.appendLine("[상담사 " + currentAgent.getName() + "] 상태 변경 -> " + newStatus);
+        if (recordWorkLog) {
+            AgentWorkLog statusRecord = agentWorkLogService.recordStatusChange(currentAgent, newStatus);
+            callPanel.appendLine(statusRecord.toString());
+            agentWorkLogPanel.refreshWorkLogs();
+        }
+        refreshAgentsInfo();
+    }
+
+    private void releaseOnCallStatusIfNeeded() {
+        if (AuthService.STATUS_ON_CALL.equals(currentAgent.getStatus())) {
+            changeMyStatus(AuthService.STATUS_WORKING, true);
+        }
+    }
+
     private void refreshAgentsInfo() {
         List<User> others = authService.getOtherAgents(currentAgent.getId());
         consultationPanel.setOtherAgents(others);
@@ -274,9 +306,10 @@ public class MainConsoleFrame extends JFrame
         callPanel.appendLine("--------------------------------------------------");
         callPanel.appendLine("[" + callerDisplay + " -> " + CENTER_NUMBER + "] 전화 발신");
 
-        // Job 생성 (INIT)
+        // Job 생성 (INIT — COMPLETED가 아니므로 상담사 상태를 '업무중: 전화'로 전환)
         this.activeJob = jobService.jobsCallINIT("전화상담", null, "INIT", callerPhone, activeCustomer, currentAgent);
         callPanel.appendLine(activeJob.toString());
+        changeMyStatus(AuthService.STATUS_ON_CALL, true);
 
         // 회원 조회 결과 처리 및 자동 검색 반영
         consultationPanel.searchByIncomingPhone(callerPhone);
@@ -328,6 +361,7 @@ public class MainConsoleFrame extends JFrame
 
         callPanel.setCompletedState(activeJob);
         activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 
@@ -426,6 +460,7 @@ public class MainConsoleFrame extends JFrame
 
         callPanel.setCompletedState(activeJob);
         activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 
@@ -447,6 +482,7 @@ public class MainConsoleFrame extends JFrame
 
         callPanel.setCompletedState(activeJob);
         activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 
@@ -454,35 +490,45 @@ public class MainConsoleFrame extends JFrame
     public void onExecuteScenario3(User targetAgent) {
         if (!ensureActiveInProgressCall()) return;
         if (targetAgent == null) {
-            JOptionPane.showMessageDialog(this, "연결할 다른 상담사를 선택해 주세요.");
+            JOptionPane.showMessageDialog(this, "연결 가능한 다른 상담사를 선택해 주세요.");
             return;
         }
 
-        callPanel.appendLine("[상담사 " + currentAgent.getName() + " (" + CENTER_NUMBER + ")] 그럼, " + targetAgent.getName() + " 상담사로 연결해 드릴게요. 잠시 기다려주세요.");
-        jobService.setTargetAgent(activeJob, targetAgent);
+        // DB에서 대상 상담사의 최신 상태 재조회
+        User freshTarget = authService.findAgentById(targetAgent.getId()).orElse(targetAgent);
+        if (AuthService.STATUS_ON_CALL.equals(freshTarget.getStatus())) {
+            JOptionPane.showMessageDialog(this,
+                    freshTarget.getName() + " 상담사는 현재 '업무중: 전화' 상태이므로 선택/연결할 수 없습니다.",
+                    "연결 불가", JOptionPane.WARNING_MESSAGE);
+            refreshAgentsInfo();
+            return;
+        }
 
-        if ("업무 중".equals(targetAgent.getStatus())) {
-            Log log = logService.logTransferAgent(currentAgent, activeJob, "상담사 연결 완료",
-                    targetAgent.getName() + " (업무 중)", LocalDateTime.now());
+        callPanel.appendLine("[상담사 " + currentAgent.getName() + " (" + CENTER_NUMBER + ")] 그럼, " + freshTarget.getName() + " 상담사로 연결해 드릴게요. 잠시 기다려주세요.");
+        jobService.setTargetAgent(activeJob, freshTarget);
+
+        // '업무 중'이든 '자리 비움'이든 모두 PENDING 상태로 전환
+        if (AuthService.STATUS_WORKING.equals(freshTarget.getStatus())) {
+            callPanel.appendLine("[상담사 " + currentAgent.getName() + " (" + CENTER_NUMBER + ")] "
+                    + freshTarget.getName() + " 상담사(업무 중) 연결 요청 — 대기(PENDING) 상태로 전환합니다.");
+            Log log = logService.logTransferAgent(currentAgent, activeJob, "상담사 연결 요청",
+                    freshTarget.getName() + " (업무 중)", LocalDateTime.now());
             callPanel.appendLine(log.toString());
-            jobService.setDescription(activeJob, targetAgent.getName() + " 상담사로 연결 완료");
-            jobService.setStatus(activeJob, JobStatus.COMPLETED);
-            callPanel.appendLine("[상담사 " + currentAgent.getName() + " (" + CENTER_NUMBER + ")] " + targetAgent.getName() + " 상담사에게 정상 인계되었습니다.");
-            callPanel.appendLine("[JOB #" + activeJob.getId() + " 상태] -> COMPLETED (인계 완료)");
-            callPanel.setCompletedState(activeJob);
-            activeJob = null;
+            jobService.setDescription(activeJob, freshTarget.getName() + " 상담사 연결 대기 (업무 중)");
         } else {
             callPanel.appendLine("[상담사 " + currentAgent.getName() + " (" + CENTER_NUMBER + ")] "
-                    + targetAgent.getName() + " 상담사가 현재 '" + targetAgent.getStatus() + "' 상태라 대기(PENDING)로 전환합니다.");
+                    + freshTarget.getName() + " 상담사가 현재 '" + freshTarget.getStatus() + "' 상태라 대기(PENDING)로 전환합니다.");
             Log log = logService.logTransferAgent(currentAgent, activeJob, "상담사 연결 대기",
-                    targetAgent.getName() + " (" + targetAgent.getStatus() + ")", LocalDateTime.now());
+                    freshTarget.getName() + " (" + freshTarget.getStatus() + ")", LocalDateTime.now());
             callPanel.appendLine(log.toString());
-            jobService.setDescription(activeJob, "다른 상담사(" + targetAgent.getName() + ") 연결 대기");
-            jobService.setStatus(activeJob, JobStatus.PENDING);
-            callPanel.appendLine("[JOB #" + activeJob.getId() + " 상태] -> PENDING");
-            callPanel.setPendingState(activeJob);
-            activeJob = null;
+            jobService.setDescription(activeJob, "다른 상담사(" + freshTarget.getName() + ") 연결 대기 (" + freshTarget.getStatus() + ")");
         }
+
+        jobService.setStatus(activeJob, JobStatus.PENDING);
+        callPanel.appendLine("[JOB #" + activeJob.getId() + " 상태] -> PENDING");
+        callPanel.setPendingState(activeJob);
+        activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 
@@ -506,6 +552,7 @@ public class MainConsoleFrame extends JFrame
 
         callPanel.setCompletedState(activeJob);
         activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 
@@ -525,6 +572,7 @@ public class MainConsoleFrame extends JFrame
 
         callPanel.setCompletedState(activeJob);
         activeJob = null;
+        releaseOnCallStatusIfNeeded();
         refreshAllDbViews();
     }
 

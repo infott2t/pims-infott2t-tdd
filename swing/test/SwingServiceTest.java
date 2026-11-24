@@ -139,20 +139,22 @@ public class SwingServiceTest {
         assertTrue(logService.searchLogs("타 번호").size() == 1, "Log 키워드 검색");
         assertTrue(logService.searchLogs("임의검색").size() == 1, "임의검색 로그 키워드 검색");
 
-        // 10. 상담사 업무기록(AgentWorkLog) 검증 (로그인, 자리비움, 업무중, 로그아웃)
+        // 10. 상담사 업무기록(AgentWorkLog) 검증 (로그인, 업무중: 전화, 자리비움, 업무중, 로그아웃)
         InMemoryAgentWorkLogRepository workLogRepo = new InMemoryAgentWorkLogRepository();
         AgentWorkLogServiceIF workLogService = new AgentWorkLogService(workLogRepo);
         AgentWorkLog w1 = workLogService.recordLogin(loggedIn);
+        AgentWorkLog wCall = workLogService.recordStatusChange(loggedIn, AuthService.STATUS_ON_CALL);
         AgentWorkLog w2 = workLogService.recordStatusChange(loggedIn, "자리 비움");
         AgentWorkLog w3 = workLogService.recordStatusChange(loggedIn, "업무 중");
         AgentWorkLog w4 = workLogService.recordLogout(loggedIn);
         assertTrue("업무기록".equals(w1.getCategory()) && "로그인".equals(w1.getDetail()) && "첼시".equals(w1.getAgentName()), "로그인 업무기록");
+        assertTrue("업무중: 전화".equals(wCall.getDetail()), "업무중: 전화 업무기록");
         assertTrue("자리비움".equals(w2.getDetail()), "자리비움 업무기록");
         assertTrue("업무중".equals(w3.getDetail()), "업무중 업무기록");
         assertTrue("로그아웃".equals(w4.getDetail()) && w4.getRecordedAt() != null, "로그아웃 업무기록");
-        assertTrue(workLogService.findMyWorkLogs(loggedIn.getId()).size() == 4, "본인 업무기록 4건 조회");
-        assertTrue(workLogService.findMyWorkLogsByDetail(loggedIn.getId(), "자리비움").size() == 1, "상세내용 필터 조회");
-        System.out.println("[PASS] 상담사 업무기록(로그인/자리비움/업무중/로그아웃) 검증 통과");
+        assertTrue(workLogService.findMyWorkLogs(loggedIn.getId()).size() == 5, "본인 업무기록 5건 조회");
+        assertTrue(workLogService.findMyWorkLogsByDetail(loggedIn.getId(), "업무중: 전화").size() == 1, "업무중: 전화 필터 조회");
+        System.out.println("[PASS] 상담사 업무기록(로그인/업무중: 전화/자리비움/업무중/로그아웃) 검증 통과");
 
         System.out.println("=== SwingServiceTest 전체 통과 (ALL TESTS PASSED) ===");
     }

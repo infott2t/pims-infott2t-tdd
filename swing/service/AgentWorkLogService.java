@@ -16,6 +16,7 @@ public class AgentWorkLogService implements AgentWorkLogServiceIF {
     public static final String DETAIL_LOGIN = "로그인";
     public static final String DETAIL_LOGOUT = "로그아웃";
     public static final String DETAIL_WORKING = "업무중";
+    public static final String DETAIL_ON_CALL = "업무중: 전화";
     public static final String DETAIL_AWAY = "자리비움";
 
     private final AgentWorkLogRepository repository;
@@ -69,6 +70,9 @@ public class AgentWorkLogService implements AgentWorkLogServiceIF {
             return DETAIL_WORKING;
         }
         String compact = status.replaceAll("\\s+", "");
+        if (compact.contains("업무중:전화")) {
+            return DETAIL_ON_CALL;
+        }
         if (compact.contains("자리비움")) {
             return DETAIL_AWAY;
         }

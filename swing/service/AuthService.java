@@ -1,6 +1,7 @@
 package swing.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import swing.entity.Role;
@@ -11,6 +12,10 @@ import swing.repository.UserRepository;
  * 상담사 로그인 인증 및 상담사 상태 관리 서비스
  */
 public class AuthService {
+
+    public static final String STATUS_WORKING = "업무 중";
+    public static final String STATUS_AWAY = "자리 비움";
+    public static final String STATUS_ON_CALL = "업무중: 전화";
 
     private final UserRepository userRepository;
 
@@ -49,6 +54,10 @@ public class AuthService {
     public void updateAgentStatus(User agent, String status) {
         agent.setStatus(status);
         userRepository.updateStatus(agent.getId(), status);
+    }
+
+    public Optional<User> findAgentById(int agentId) {
+        return userRepository.findById(agentId);
     }
 
     public List<User> getAllAgents() {

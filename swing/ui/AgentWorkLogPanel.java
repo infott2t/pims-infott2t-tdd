@@ -47,7 +47,7 @@ public class AgentWorkLogPanel extends JPanel {
         JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 2));
         filterBar.setOpaque(false);
 
-        detailFilterCombo = new JComboBox<>(new String[]{"전체", "로그인", "로그아웃", "업무중", "자리비움"});
+        detailFilterCombo = new JComboBox<>(new String[]{"전체", "로그인", "로그아웃", "업무중", "업무중: 전화", "자리비움"});
         JButton refreshBtn = new JButton("새로고침");
 
         detailFilterCombo.addActionListener(e -> refreshWorkLogs());

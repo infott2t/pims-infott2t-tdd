@@ -79,11 +79,12 @@ INSERT IGNORE INTO roles (role_name, description) VALUES
     ('사용자', '등록된 일반 회원'),
     ('일반',   '비회원 또는 일반 사용자');
 
--- 샘플 상담사 계정 (비밀번호: 1234)
+-- 샘플 상담사 계정 (비밀번호: 1234) — 3가지 상태(업무 중 / 자리 비움 / 업무중: 전화) 모두 테스트 가능
 INSERT IGNORE INTO users (name, email, password, role, phone_number, birth_day, address, status) VALUES
     ('첼시', 'chelsea@pims.com', '1234', '상담사', '02-1000-0001', '950310', '서울시 중구 고객센터', '업무 중'),
     ('미키', 'mickey@pims.com',  '1234', '상담사', '02-1000-0002', '930822', '서울시 중구 고객센터', '자리 비움'),
-    ('루시', 'lucy@pims.com',    '1234', '상담사', '02-1000-0003', '970105', '서울시 중구 고객센터', '업무 중');
+    ('루시', 'lucy@pims.com',    '1234', '상담사', '02-1000-0003', '970105', '서울시 중구 고객센터', '업무 중'),
+    ('제니', 'jenny@pims.com',   '1234', '상담사', '02-1000-0004', '960618', '서울시 중구 고객센터', '업무중: 전화');
 
 -- 샘플 회원 계정
 INSERT IGNORE INTO users (name, email, password, role, phone_number, birth_day, address, status) VALUES
