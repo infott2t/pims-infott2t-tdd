@@ -24,6 +24,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import swing.entity.User;
@@ -45,6 +48,7 @@ public class ConsultationPanel extends JPanel {
         void onExecuteGuestSimpleConsultation();
         void onRefreshAgentsRequested();
         void onCustomerSelected(User customer);
+        void onArbitrarySearchExecuted(String keyword);
     }
 
     private final UserService userService;
@@ -53,6 +57,8 @@ public class ConsultationPanel extends JPanel {
     // 회원 검색 UI
     private final JComboBox<String> searchFieldCombo;
     private final JTextField searchKeywordField;
+    private final Timer autoSearchTimer;
+    private boolean suppressAutoSearch = false;
     private final DefaultTableModel customerTableModel;
     private final JTable customerTable;
     private final JLabel selectedCustomerBanner;
@@ -97,13 +103,74 @@ public class ConsultationPanel extends JPanel {
         JButton clearBtn = new JButton("초기화");
         JButton addCustomerBtn = new JButton("+ 신규 회원 등록");
 
-        searchBtn.addActionListener(e -> performSearch());
-        searchKeywordField.addActionListener(e -> performSearch());
+        // 검색 텍스트필드 변경 시 400ms 디바운스 후 자동 검색 + 임의검색 로그 기록
+        autoSearchTimer = new Timer(400, e -> {
+            if (suppressAutoSearch) {
+                return;
+            }
+            String kw = searchKeywordField.getText().trim();
+            if (kw.isEmpty()) {
+                updateCustomerTable(Collections.emptyList());
+                clearSelectedCustomer("전화 수신(벨 울림)을 누르거나 검색어를 입력하면 회원 정보가 조회됩니다.");
+            } else {
+                performSearch(true);
+            }
+        });
+        autoSearchTimer.setRepeats(false);
+
+        searchKeywordField.getDocument().addDocumentListener(new DocumentListener() {
+            private void scheduleAutoSearch() {
+                if (!suppressAutoSearch) {
+                    autoSearchTimer.restart();
+                }
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleAutoSearch();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleAutoSearch();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleAutoSearch();
+            }
+        });
+
+        // 검색 기준 select 변경 시 텍스트필드에 값이 있으면 즉시 자동 검색 + 임의검색 로그 기록
+        searchFieldCombo.addActionListener(e -> {
+            if (suppressAutoSearch) {
+                return;
+            }
+            autoSearchTimer.stop();
+            if (!searchKeywordField.getText().trim().isEmpty()) {
+                performSearch(true);
+            }
+        });
+
+        searchBtn.addActionListener(e -> {
+            autoSearchTimer.stop();
+            performSearch(true);
+        });
+        searchKeywordField.addActionListener(e -> {
+            autoSearchTimer.stop();
+            performSearch(true);
+        });
         clearBtn.addActionListener(e -> {
-            searchKeywordField.setText("");
-            searchFieldCombo.setSelectedItem("전화번호");
+            autoSearchTimer.stop();
+            suppressAutoSearch = true;
+            try {
+                searchKeywordField.setText("");
+                searchFieldCombo.setSelectedItem("전화번호");
+            } finally {
+                suppressAutoSearch = false;
+            }
             updateCustomerTable(Collections.emptyList());
-            clearSelectedCustomer("발신번호를 선택하거나 입력하면 일치하는 회원 정보만 표시됩니다.");
+            clearSelectedCustomer("전화 수신(벨 울림)을 누르거나 검색어를 입력하면 회원 정보가 조회됩니다.");
         });
         addCustomerBtn.addActionListener(e -> openRegisterCustomerDialog());
 
@@ -177,8 +244,8 @@ public class ConsultationPanel extends JPanel {
         verticalSplit.setBorder(null);
         add(verticalSplit, BorderLayout.CENTER);
 
-        // 초기에는 전체 회원 목록을 노출하지 않고 비워둠 (발신번호 일치 시에만 표시)
-        clearSelectedCustomer("발신번호를 선택하거나 입력하면 일치하는 회원 정보만 표시됩니다.");
+        // 초기에는 전체 회원 목록을 노출하지 않고 비워둠 (전화 수신 또는 직접 검색 시 표시)
+        clearSelectedCustomer("전화 수신(벨 울림)을 누르거나 검색어를 입력하면 회원 정보가 조회됩니다.");
     }
 
     private JScrollPane wrapScenarioTab(JPanel content) {
@@ -431,6 +498,10 @@ public class ConsultationPanel extends JPanel {
     }
 
     public void performSearch() {
+        performSearch(true);
+    }
+
+    public void performSearch(boolean recordArbitraryLog) {
         try {
             String field = (String) searchFieldCombo.getSelectedItem();
             String keyword = searchKeywordField.getText().trim();
@@ -441,19 +512,31 @@ public class ConsultationPanel extends JPanel {
             }
 
             if ("전화번호".equals(field)) {
-                filterByExactPhone(keyword);
-                return;
+                Optional<User> matched = userService.checkPhoneNumber(keyword);
+                if (matched.isPresent()) {
+                    User customer = matched.get();
+                    updateCustomerTable(Collections.singletonList(customer));
+                    customerTable.setRowSelectionInterval(0, 0);
+                    selectCustomer(customer);
+                } else {
+                    updateCustomerTable(Collections.emptyList());
+                    clearSelectedCustomer("미등록 전화번호 (" + keyword + ") — 일치하는 회원 정보 없음 (비회원 단순상담만 가능)");
+                }
+            } else {
+                List<User> results = userService.searchCustomers(field, keyword);
+                updateCustomerTable(results);
+                if (results.size() == 1) {
+                    customerTable.setRowSelectionInterval(0, 0);
+                    selectCustomer(results.get(0));
+                } else if (results.isEmpty()) {
+                    clearSelectedCustomer("검색 결과가 없습니다: " + keyword);
+                } else {
+                    clearSelectedCustomer("검색 결과 " + results.size() + "건 — 테이블에서 대상 회원을 선택하세요.");
+                }
             }
 
-            List<User> results = userService.searchCustomers(field, keyword);
-            updateCustomerTable(results);
-            if (results.size() == 1) {
-                customerTable.setRowSelectionInterval(0, 0);
-                selectCustomer(results.get(0));
-            } else if (results.isEmpty()) {
-                clearSelectedCustomer("검색 결과가 없습니다: " + keyword);
-            } else {
-                clearSelectedCustomer("검색 결과 " + results.size() + "건 — 테이블에서 대상 회원을 선택하세요.");
+            if (recordArbitraryLog) {
+                listener.onArbitrarySearchExecuted(keyword);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "회원 검색 오류:\n" + ex.getMessage(),
@@ -462,16 +545,23 @@ public class ConsultationPanel extends JPanel {
     }
 
     /**
-     * 발신번호(핸드폰 번호)와 정확히 일치하는 회원 1건만 검색결과 테이블에 표시합니다.
+     * 전화 수신(벨 울림) 등 시스템 이벤트에 의해 발신번호와 정확히 일치하는 회원 1건만 표시합니다.
+     * (임의검색 로그를 중복 발생시키지 않도록 suppressAutoSearch로 보호합니다.)
      */
     public void filterByExactPhone(String phoneNumber) {
         String trimmed = (phoneNumber == null) ? "" : phoneNumber.trim();
-        searchFieldCombo.setSelectedItem("전화번호");
-        searchKeywordField.setText(trimmed);
+        autoSearchTimer.stop();
+        suppressAutoSearch = true;
+        try {
+            searchFieldCombo.setSelectedItem("전화번호");
+            searchKeywordField.setText(trimmed);
+        } finally {
+            suppressAutoSearch = false;
+        }
 
         if (trimmed.isEmpty()) {
             updateCustomerTable(Collections.emptyList());
-            clearSelectedCustomer("발신번호를 선택하거나 입력하면 일치하는 회원 정보만 표시됩니다.");
+            clearSelectedCustomer("전화 수신(벨 울림)을 누르거나 검색어를 입력하면 회원 정보가 조회됩니다.");
             return;
         }
 

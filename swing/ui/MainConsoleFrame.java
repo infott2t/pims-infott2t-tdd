@@ -81,7 +81,6 @@ public class MainConsoleFrame extends JFrame
 
         initUI();
         refreshAgentsInfo();
-        consultationPanel.filterByExactPhone(callPanel.getCurrentCallerPhone());
 
         callPanel.appendLine("[" + currentAgent.getRole() + " " + currentAgent.getName() + "] 로그인 완료 (상태: " + currentAgent.getStatus() + ")");
         callPanel.appendLine("좌측에서 [전화 수신(벨 울림)] 버튼을 눌러 상담을 시작하세요.");
@@ -210,8 +209,7 @@ public class MainConsoleFrame extends JFrame
 
     @Override
     public void onCallerPhoneChanged(String callerPhone) {
-        // 발신번호 선택(Select) 또는 직접 입력(TextField) 시 일치하는 번호의 회원 정보만 표시
-        consultationPanel.filterByExactPhone(callerPhone);
+        // 전화 수신(벨 울림) 버튼 클릭 전에는 자동 검색을 실행하지 않음
     }
 
     @Override
@@ -296,6 +294,14 @@ public class MainConsoleFrame extends JFrame
             callPanel.appendLine("[회원 연결] Job #" + activeJob.getId() + "에 회원 '" + customer.getName() + "' 연결됨");
             refreshAllDbViews();
         }
+    }
+
+    @Override
+    public void onArbitrarySearchExecuted(String keyword) {
+        // Job ID·회원은 비우고(null), 담당상담사는 로그인한 상담사(currentAgent)로 "임의검색" 로그 기록
+        Log log = logService.logArbitrarySearch(currentAgent, keyword, LocalDateTime.now());
+        callPanel.appendLine(log.toString());
+        logHistoryPanel.refreshLogs();
     }
 
     @Override

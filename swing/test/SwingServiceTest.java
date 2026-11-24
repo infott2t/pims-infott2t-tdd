@@ -116,11 +116,24 @@ public class SwingServiceTest {
         assertTrue(job4.getStatus() == JobStatus.COMPLETED, "시나리오 4 COMPLETED");
         System.out.println("[PASS] 시나리오 4 (단순 질문 답변 / 비회원) 통과");
 
-        // 8. 전체 Job / Log 조회 검증
+        // 8. 임의검색 로그 기록 검증 (Job ID·회원은 null, 담당상담사는 로그인한 상담사 기록 / 항목="임의검색" / 상세내용=텍스트필드 값)
+        Log arbitraryLog = logService.logArbitrarySearch(loggedIn, "010-1234-5678", LocalDateTime.now());
+        assertTrue(arbitraryLog.getJobId() == null, "임의검색 Job ID는 null");
+        assertTrue(Integer.valueOf(loggedIn.getId()).equals(arbitraryLog.getAgentId()), "임의검색 담당상담사 ID는 로그인한 상담사");
+        assertTrue("첼시".equals(arbitraryLog.getAgentName()), "임의검색 담당상담사 이름은 첼시");
+        assertTrue(arbitraryLog.getUserId() == null, "임의검색 회원 ID는 null");
+        assertTrue("임의검색".equals(arbitraryLog.getLogName()), "임의검색 logName 검증");
+        assertTrue("010-1234-5678".equals(arbitraryLog.getLogDescription()), "임의검색 상세내용 텍스트필드 값 그대로 저장");
+        assertTrue(arbitraryLog.getCreatedAt() != null, "임의검색 기록시각 저장");
+        System.out.println("[PASS] 임의검색 로그 기록(담당상담사 이름 포함, JobID/회원 null) 검증 통과");
+
+        // 9. 전체 Job / Log 조회 검증
         assertTrue(jobService.findAllJobs().size() == 4, "전체 Job 4건 조회");
         assertTrue(jobService.findJobsByStatus(JobStatus.PENDING).size() == 1, "PENDING Job 1건 조회");
-        assertTrue(logService.findAllLogs().size() == 7, "전체 Log 7건 조회");
+        assertTrue(logService.findAllLogs().size() == 8, "전체 Log 8건 조회");
+        assertTrue(logService.findLogsByJobId(job1.getId()).size() == 4, "특정 Job 로그 조회 시 null jobId 안전 처리");
         assertTrue(logService.searchLogs("타 번호").size() == 1, "Log 키워드 검색");
+        assertTrue(logService.searchLogs("임의검색").size() == 1, "임의검색 로그 키워드 검색");
 
         System.out.println("=== SwingServiceTest 전체 통과 (ALL TESTS PASSED) ===");
     }
@@ -239,7 +252,9 @@ public class SwingServiceTest {
 
         @Override
         public List<Log> findByJobId(int jobId) {
-            return store.stream().filter(l -> l.getJobId() == jobId).collect(Collectors.toList());
+            return store.stream()
+                    .filter(l -> Integer.valueOf(jobId).equals(l.getJobId()))
+                    .collect(Collectors.toList());
         }
 
         @Override

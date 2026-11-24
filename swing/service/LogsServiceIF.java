@@ -26,6 +26,8 @@ public interface LogsServiceIF {
 
     Log logSimpleAnswer(User agent, Job job, String logName, String answer, LocalDateTime now);
 
+    Log logArbitrarySearch(User agent, String searchKeyword, LocalDateTime now);
+
     List<Log> findAllLogs();
 
     List<Log> findLogsByJobId(int jobId);

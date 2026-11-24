@@ -39,8 +39,16 @@ public class JdbcLogRepository implements LogRepository {
         }
         try (Connection conn = dbManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, log.getJobId());
-            ps.setInt(2, log.getAgentId());
+            if (log.getJobId() != null) {
+                ps.setInt(1, log.getJobId());
+            } else {
+                ps.setNull(1, Types.INTEGER);
+            }
+            if (log.getAgentId() != null) {
+                ps.setInt(2, log.getAgentId());
+            } else {
+                ps.setNull(2, Types.INTEGER);
+            }
             if (log.getUserId() != null) {
                 ps.setInt(3, log.getUserId());
             } else {
@@ -123,8 +131,10 @@ public class JdbcLogRepository implements LogRepository {
     private Log mapRow(ResultSet rs) throws SQLException {
         Log log = new Log();
         log.setId(rs.getInt("id"));
-        log.setJobId(rs.getInt("job_id"));
-        log.setAgentId(rs.getInt("agent_id"));
+        int jid = rs.getInt("job_id");
+        log.setJobId(rs.wasNull() ? null : jid);
+        int aid = rs.getInt("agent_id");
+        log.setAgentId(rs.wasNull() ? null : aid);
         int uid = rs.getInt("user_id");
         log.setUserId(rs.wasNull() ? null : uid);
         log.setLogName(rs.getString("log_name"));

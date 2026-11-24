@@ -12,9 +12,9 @@ public class Log {
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private int id;
-    private int jobId;
-    private int agentId;
-    private Integer userId; // 비회원인 경우 null
+    private Integer jobId;   // 임의검색인 경우 null
+    private Integer agentId; // 임의검색인 경우 null
+    private Integer userId;  // 비회원 또는 임의검색인 경우 null
     private String logName;
     private String logDescription;
     private LocalDateTime createdAt;
@@ -26,7 +26,7 @@ public class Log {
     public Log() {
     }
 
-    public Log(int jobId, int agentId, Integer userId, String logName, String logDescription, LocalDateTime createdAt) {
+    public Log(Integer jobId, Integer agentId, Integer userId, String logName, String logDescription, LocalDateTime createdAt) {
         this.jobId = jobId;
         this.agentId = agentId;
         this.userId = userId;
@@ -43,19 +43,19 @@ public class Log {
         this.id = id;
     }
 
-    public int getJobId() {
+    public Integer getJobId() {
         return jobId;
     }
 
-    public void setJobId(int jobId) {
+    public void setJobId(Integer jobId) {
         this.jobId = jobId;
     }
 
-    public int getAgentId() {
+    public Integer getAgentId() {
         return agentId;
     }
 
-    public void setAgentId(int agentId) {
+    public void setAgentId(Integer agentId) {
         this.agentId = agentId;
     }
 
@@ -113,7 +113,13 @@ public class Log {
 
     @Override
     public String toString() {
-        String agentLabel = (agentName != null) ? agentName : ("Agent#" + agentId);
+        String agentLabel = (agentName != null) ? agentName : (agentId != null ? "Agent#" + agentId : "-");
+        if (jobId == null) {
+            return "[LOG #" + id + "] 담당자: " + agentLabel
+                    + " | 항목: " + logName
+                    + " | 내용: " + logDescription
+                    + " | 시각: " + getFormattedCreatedAt();
+        }
         return "[LOG #" + id + "] Job#" + jobId
                 + " | 담당자: " + agentLabel
                 + " | 항목: " + logName

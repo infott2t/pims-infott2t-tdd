@@ -153,11 +153,20 @@ public class LogHistoryPanel extends JPanel {
     private void updateTable(List<Log> logs) {
         tableModel.setRowCount(0);
         for (Log l : logs) {
+            boolean isArbitrarySearch = (l.getJobId() == null);
+            Object jobIdCell = (l.getJobId() != null) ? l.getJobId() : "";
+            String agentCell = (l.getAgentId() == null)
+                    ? ""
+                    : (l.getAgentName() != null ? l.getAgentName() : ("#" + l.getAgentId()));
+            String userCell = (l.getUserId() != null)
+                    ? (l.getUserName() != null ? l.getUserName() : ("#" + l.getUserId()))
+                    : (isArbitrarySearch ? "" : "비회원");
+
             tableModel.addRow(new Object[]{
                     l.getId(),
-                    l.getJobId(),
-                    l.getAgentName() != null ? l.getAgentName() : ("#" + l.getAgentId()),
-                    l.getUserName() != null ? l.getUserName() : "비회원",
+                    jobIdCell,
+                    agentCell,
+                    userCell,
                     l.getLogName(),
                     l.getLogDescription(),
                     l.getFormattedCreatedAt()

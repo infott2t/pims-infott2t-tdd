@@ -47,11 +47,11 @@ CREATE TABLE IF NOT EXISTS jobs (
     CONSTRAINT fk_jobs_target_agent FOREIGN KEY (target_agent_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. 상담 로그(Logs) 테이블
+-- 4. 상담 로그(Logs) 테이블 (임의검색 로그는 job_id, agent_id, user_id가 NULL)
 CREATE TABLE IF NOT EXISTS logs (
     id              INT AUTO_INCREMENT PRIMARY KEY,
-    job_id          INT          NOT NULL,
-    agent_id        INT          NOT NULL,
+    job_id          INT          NULL,
+    agent_id        INT          NULL,
     user_id         INT          NULL,
     log_name        VARCHAR(100) NOT NULL,
     log_description VARCHAR(500) NULL,

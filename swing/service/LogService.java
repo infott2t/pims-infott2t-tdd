@@ -69,6 +69,24 @@ public class LogService implements LogsServiceIF {
     }
 
     @Override
+    public Log logArbitrarySearch(User agent, String searchKeyword, LocalDateTime now) {
+        // 임의검색: Job ID·회원은 비우고(null), 담당상담사는 로그인한 상담사를 기록, 항목="임의검색", 상세내용=텍스트필드 값
+        Integer agentId = (agent != null) ? agent.getId() : null;
+        Log log = new Log(
+                null,
+                agentId,
+                null,
+                "임의검색",
+                searchKeyword,
+                now != null ? now : LocalDateTime.now()
+        );
+        if (agent != null) {
+            log.setAgentName(agent.getName());
+        }
+        return logRepository.save(log);
+    }
+
+    @Override
     public List<Log> findAllLogs() {
         return logRepository.findAll();
     }

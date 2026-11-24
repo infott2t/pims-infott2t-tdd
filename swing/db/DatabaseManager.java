@@ -214,8 +214,8 @@ public class DatabaseManager {
             stmt.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS logs ("
                             + "id INT AUTO_INCREMENT PRIMARY KEY, "
-                            + "job_id INT NOT NULL, "
-                            + "agent_id INT NOT NULL, "
+                            + "job_id INT NULL, "
+                            + "agent_id INT NULL, "
                             + "user_id INT NULL, "
                             + "log_name VARCHAR(100) NOT NULL, "
                             + "log_description VARCHAR(500) NULL, "
@@ -224,6 +224,10 @@ public class DatabaseManager {
                             + "CONSTRAINT fk_logs_agent FOREIGN KEY (agent_id) REFERENCES users(id), "
                             + "CONSTRAINT fk_logs_user FOREIGN KEY (user_id) REFERENCES users(id)"
                             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+            // 기존에 NOT NULL로 생성된 logs 테이블도 임의검색(NULL) 저장이 가능하도록 마이그레이션
+            stmt.executeUpdate("ALTER TABLE logs MODIFY COLUMN job_id INT NULL");
+            stmt.executeUpdate("ALTER TABLE logs MODIFY COLUMN agent_id INT NULL");
 
             // 역할 시드
             stmt.executeUpdate(
