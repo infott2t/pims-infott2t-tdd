@@ -18,7 +18,9 @@ import javax.swing.SwingConstants;
 
 import swing.db.DatabaseConfig;
 import swing.db.DatabaseManager;
+import swing.entity.AgentWorkLog;
 import swing.entity.User;
+import swing.service.AgentWorkLogService;
 import swing.service.AuthService;
 import swing.service.JobService;
 import swing.service.LogService;
@@ -34,6 +36,7 @@ public class LoginFrame extends JFrame {
     private final UserService userService;
     private final JobService jobService;
     private final LogService logService;
+    private final AgentWorkLogService agentWorkLogService;
 
     private final JTextField emailField;
     private final JPasswordField passwordField;
@@ -45,6 +48,7 @@ public class LoginFrame extends JFrame {
                       UserService userService,
                       JobService jobService,
                       LogService logService,
+                      AgentWorkLogService agentWorkLogService,
                       boolean dbReady,
                       String initialDbError) {
         super("PIMS 고객상담 정보시스템 - 상담사 로그인");
@@ -53,6 +57,7 @@ public class LoginFrame extends JFrame {
         this.userService = userService;
         this.jobService = jobService;
         this.logService = logService;
+        this.agentWorkLogService = agentWorkLogService;
         this.dbReady = dbReady;
 
         this.emailField = new JTextField("chelsea@pims.com", 22);
@@ -200,8 +205,9 @@ public class LoginFrame extends JFrame {
 
         try {
             User agent = authService.login(email, password);
+            AgentWorkLog loginRecord = agentWorkLogService.recordLogin(agent);
             MainConsoleFrame console = new MainConsoleFrame(
-                    agent, dbManager, authService, userService, jobService, logService);
+                    agent, dbManager, authService, userService, jobService, logService, agentWorkLogService, loginRecord);
             console.setVisible(true);
             dispose();
         } catch (IllegalArgumentException ex) {

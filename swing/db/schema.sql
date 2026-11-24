@@ -61,6 +61,16 @@ CREATE TABLE IF NOT EXISTS logs (
     CONSTRAINT fk_logs_user  FOREIGN KEY (user_id)  REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 5. 상담사 업무기록(Agent Work Logs) 테이블 (로그인, 로그아웃, 업무중, 자리비움)
+CREATE TABLE IF NOT EXISTS agent_work_logs (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    agent_id    INT         NOT NULL,
+    category    VARCHAR(50) NOT NULL,
+    detail      VARCHAR(50) NOT NULL,
+    recorded_at DATETIME    NOT NULL,
+    CONSTRAINT fk_agent_work_logs_agent FOREIGN KEY (agent_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================
 -- 초기 시드 데이터 (중복 실행 안전: INSERT IGNORE)
 -- ============================================================

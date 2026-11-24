@@ -3,6 +3,9 @@ package swing.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,14 +17,20 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 import swing.db.DatabaseManager;
+import swing.entity.AgentWorkLog;
 import swing.entity.Job;
 import swing.entity.JobStatus;
 import swing.entity.Log;
 import swing.entity.User;
+import swing.service.AgentWorkLogService;
 import swing.service.AuthService;
 import swing.service.JobService;
 import swing.service.LogService;
@@ -29,7 +38,7 @@ import swing.service.UserService;
 
 /**
  * 메인 상담사 업무 콘솔 창
- * 상단(상담사 상태/동료 현황) + 좌측(전화 수신/대화 타임라인) + 우측(회원검색·시나리오1~4 / Job DB / Log DB)
+ * 상단(상담사 상태/동료 현황) + 좌측(전화 수신/대화 타임라인) + 우측(회원검색·시나리오1~4 / Job DB / Log DB / 상담사 업무기록)
  */
 public class MainConsoleFrame extends JFrame
         implements IncomingCallPanel.CallActionListener,
@@ -37,6 +46,7 @@ public class MainConsoleFrame extends JFrame
         JobHistoryPanel.JobHistoryListener {
 
     private static final String CENTER_NUMBER = "x23-4567-8901";
+    private static final String ADMIN_LOG_PASSWORD = "1234";
 
     private final User currentAgent;
     private final DatabaseManager dbManager;
@@ -44,26 +54,33 @@ public class MainConsoleFrame extends JFrame
     private final UserService userService;
     private final JobService jobService;
     private final LogService logService;
+    private final AgentWorkLogService agentWorkLogService;
 
     private final JLabel peerAgentsLabel;
     private final IncomingCallPanel callPanel;
     private final ConsultationPanel consultationPanel;
     private final JobHistoryPanel jobHistoryPanel;
     private final LogHistoryPanel logHistoryPanel;
+    private final AgentWorkLogPanel agentWorkLogPanel;
     private final JTabbedPane rightTabs;
 
     // 현재 진행 중인 통화/업무 세션 상태
     private Job activeJob;
     private User activeCustomer;
     private String activeCallerPhone;
-    private boolean skipNextLogAutoRefresh = false;
+    private Integer pendingLogJobIdFilter = null;
+    private int lastNonLogTabIndex = 0;
+    private boolean revertingTab = false;
+    private boolean logoutRecorded = false;
 
     public MainConsoleFrame(User currentAgent,
                             DatabaseManager dbManager,
                             AuthService authService,
                             UserService userService,
                             JobService jobService,
-                            LogService logService) {
+                            LogService logService,
+                            AgentWorkLogService agentWorkLogService,
+                            AgentWorkLog loginRecord) {
         super("PIMS 고객상담 회원정보시스템 — 상담사: " + currentAgent.getName());
         this.currentAgent = currentAgent;
         this.dbManager = dbManager;
@@ -71,19 +88,32 @@ public class MainConsoleFrame extends JFrame
         this.userService = userService;
         this.jobService = jobService;
         this.logService = logService;
+        this.agentWorkLogService = agentWorkLogService;
 
         this.peerAgentsLabel = new JLabel();
         this.callPanel = new IncomingCallPanel(this);
         this.consultationPanel = new ConsultationPanel(userService, this);
         this.jobHistoryPanel = new JobHistoryPanel(jobService, this);
         this.logHistoryPanel = new LogHistoryPanel(logService);
+        this.agentWorkLogPanel = new AgentWorkLogPanel(currentAgent, agentWorkLogService);
         this.rightTabs = new JTabbedPane();
 
         initUI();
         refreshAgentsInfo();
 
         callPanel.appendLine("[" + currentAgent.getRole() + " " + currentAgent.getName() + "] 로그인 완료 (상태: " + currentAgent.getStatus() + ")");
+        if (loginRecord != null) {
+            callPanel.appendLine(loginRecord.toString());
+        }
         callPanel.appendLine("좌측에서 [전화 수신(벨 울림)] 버튼을 눌러 상담을 시작하세요.");
+
+        // 창 X 버튼 종료 시에도 로그아웃 업무기록 및 상태(자리 비움) 저장
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                recordLogoutOnce();
+            }
+        });
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1280, 760);
@@ -118,9 +148,12 @@ public class MainConsoleFrame extends JFrame
         myStatusCombo.setSelectedItem(currentAgent.getStatus());
         myStatusCombo.addActionListener(e -> {
             String newStatus = (String) myStatusCombo.getSelectedItem();
-            if (newStatus != null) {
+            if (newStatus != null && !newStatus.equals(currentAgent.getStatus())) {
                 authService.updateAgentStatus(currentAgent, newStatus);
+                AgentWorkLog statusRecord = agentWorkLogService.recordStatusChange(currentAgent, newStatus);
                 callPanel.appendLine("[상담사 " + currentAgent.getName() + "] 상태 변경 -> " + newStatus);
+                callPanel.appendLine(statusRecord.toString());
+                agentWorkLogPanel.refreshWorkLogs();
                 refreshAgentsInfo();
             }
         });
@@ -133,30 +166,45 @@ public class MainConsoleFrame extends JFrame
         header.add(rightControls, BorderLayout.EAST);
         root.add(header, BorderLayout.NORTH);
 
-        // 2. 중앙 JSplitPane (좌: 통화 제어 및 대화창 / 우: 3개 탭)
+        // 2. 중앙 JSplitPane (좌: 통화 제어 및 대화창 / 우: 4개 탭)
         rightTabs.setFont(UiTheme.FONT_BOLD);
         rightTabs.addTab("1. 회원 검색 & 상담 시나리오(1~4)", consultationPanel);
         rightTabs.addTab("2. 업무(Job) DB 조회", jobHistoryPanel);
         rightTabs.addTab("3. 로그(Log) DB 조회", logHistoryPanel);
+        rightTabs.addTab("4. 상담사 업무기록", agentWorkLogPanel);
 
-        // 3번 탭(Log DB 조회) 클릭 시 관리자 전용 가상 시나리오 안내 팝업 표시
+        // 3번 탭(Log DB 조회) 진입 시 관리자 암호(개발중 1234) 확인 팝업 표시
         rightTabs.addChangeListener(e -> {
-            if (rightTabs.getSelectedIndex() == 2) {
+            if (revertingTab) {
+                return;
+            }
+            int selected = rightTabs.getSelectedIndex();
+            if (selected == 2) {
                 logHistoryPanel.setLogsVisible(false);
-                JOptionPane.showMessageDialog(
-                        MainConsoleFrame.this,
-                        "가상시나리오로 작동되며, Log DB탭의 경우 관리자의 경우에 열어서 볼 수 있습니다.\n"
-                                + "현재는 가상으로 작동되어 볼 수 있습니다.",
-                        "관리자 전용 안내 (가상 시나리오)",
-                        JOptionPane.INFORMATION_MESSAGE);
-                if (!skipNextLogAutoRefresh) {
-                    logHistoryPanel.refreshLogs();
+                if (promptAdminLogPassword()) {
+                    if (pendingLogJobIdFilter != null) {
+                        logHistoryPanel.filterByJobId(pendingLogJobIdFilter);
+                        pendingLogJobIdFilter = null;
+                    } else {
+                        logHistoryPanel.refreshLogs();
+                    }
+                    logHistoryPanel.setLogsVisible(true);
                 } else {
-                    skipNextLogAutoRefresh = false;
+                    pendingLogJobIdFilter = null;
+                    logHistoryPanel.setLogsVisible(false);
+                    revertingTab = true;
+                    try {
+                        rightTabs.setSelectedIndex(lastNonLogTabIndex);
+                    } finally {
+                        revertingTab = false;
+                    }
                 }
-                logHistoryPanel.setLogsVisible(true);
             } else {
+                lastNonLogTabIndex = selected;
                 logHistoryPanel.setLogsVisible(false);
+                if (selected == 3) {
+                    agentWorkLogPanel.refreshWorkLogs();
+                }
             }
         });
 
@@ -485,12 +533,59 @@ public class MainConsoleFrame extends JFrame
         refreshAgentsInfo();
     }
 
+    private boolean promptAdminLogPassword() {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        JPanel msgPanel = new JPanel(new GridLayout(2, 1, 0, 2));
+        msgPanel.add(new JLabel("가상 시나리오로 작동되며, Log DB는 관리자만 볼 수 있습니다."));
+        msgPanel.add(new JLabel("암호를 입력해주세요. (개발중 암호 1234)"));
+        panel.add(msgPanel, BorderLayout.NORTH);
+
+        JPasswordField passwordField = new JPasswordField(16);
+        passwordField.addAncestorListener(new AncestorListener() {
+            @Override
+            public void ancestorAdded(AncestorEvent event) {
+                SwingUtilities.invokeLater(passwordField::requestFocusInWindow);
+            }
+
+            @Override
+            public void ancestorRemoved(AncestorEvent event) {
+            }
+
+            @Override
+            public void ancestorMoved(AncestorEvent event) {
+            }
+        });
+        panel.add(passwordField, BorderLayout.CENTER);
+
+        int option = JOptionPane.showConfirmDialog(
+                MainConsoleFrame.this,
+                panel,
+                "관리자 암호 확인 (가상 시나리오)",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (option != JOptionPane.OK_OPTION) {
+            return false;
+        }
+
+        String entered = new String(passwordField.getPassword()).trim();
+        if (ADMIN_LOG_PASSWORD.equals(entered)) {
+            return true;
+        }
+
+        JOptionPane.showMessageDialog(
+                MainConsoleFrame.this,
+                "암호가 일치하지 않습니다. (개발중 암호: 1234)",
+                "접근 거부",
+                JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+
     // ==================== JobHistoryListener 구현 ====================
 
     @Override
     public void onViewJobLogs(int jobId) {
-        skipNextLogAutoRefresh = true;
-        logHistoryPanel.filterByJobId(jobId);
+        pendingLogJobIdFilter = jobId;
         rightTabs.setSelectedIndex(2);
     }
 
@@ -511,10 +606,23 @@ public class MainConsoleFrame extends JFrame
         refreshAllDbViews();
     }
 
+    private void recordLogoutOnce() {
+        if (logoutRecorded) {
+            return;
+        }
+        logoutRecorded = true;
+        try {
+            authService.updateAgentStatus(currentAgent, "자리 비움");
+            agentWorkLogService.recordLogout(currentAgent);
+        } catch (Exception ignored) {
+            // 종료 중 DB 오류 무시
+        }
+    }
+
     private void handleLogout() {
-        authService.updateAgentStatus(currentAgent, "자리 비움");
+        recordLogoutOnce();
         LoginFrame loginFrame = new LoginFrame(
-                dbManager, authService, userService, jobService, logService, true, null);
+                dbManager, authService, userService, jobService, logService, agentWorkLogService, true, null);
         loginFrame.setVisible(true);
         dispose();
     }

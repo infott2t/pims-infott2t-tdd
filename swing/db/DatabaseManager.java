@@ -229,6 +229,17 @@ public class DatabaseManager {
             stmt.executeUpdate("ALTER TABLE logs MODIFY COLUMN job_id INT NULL");
             stmt.executeUpdate("ALTER TABLE logs MODIFY COLUMN agent_id INT NULL");
 
+            // 5. 상담사 업무기록 테이블 (로그인, 로그아웃, 업무중, 자리비움)
+            stmt.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS agent_work_logs ("
+                            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                            + "agent_id INT NOT NULL, "
+                            + "category VARCHAR(50) NOT NULL, "
+                            + "detail VARCHAR(50) NOT NULL, "
+                            + "recorded_at DATETIME NOT NULL, "
+                            + "CONSTRAINT fk_agent_work_logs_agent FOREIGN KEY (agent_id) REFERENCES users(id)"
+                            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
             // 역할 시드
             stmt.executeUpdate(
                     "INSERT IGNORE INTO roles (role_name, description) VALUES "
